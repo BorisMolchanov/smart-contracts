@@ -1,0 +1,32 @@
+const Web3 = require('web3');
+const Contract = require('web3-eth-contract');
+const tokenABI = require('./tokenABI.json');
+
+const contractAddress = '0x5d832337f7d670dcdf9d88d825b372ce6a305adb';
+
+const privateKey = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const account = '0x587b07dCE126f314A850Ada54113898d21acB006';
+
+async function test() {
+    const web3 = await new Web3(new Web3.providers.HttpProvider('https://ropsten.infura.io/v3/2248eb728e1b4adb8570426683fb2b76'))
+    await Contract.setProvider('https://ropsten.infura.io/v3/2248eb728e1b4adb8570426683fb2b76');
+
+    const contract = await new Contract(tokenABI, contractAddress);
+    const balance = await contract.methods.balanceOf(account).call();
+    console.log(balance);
+
+    const tx = await contract.methods.mint('0x587b07dCE126f314A850Ada54113898d21acB006', 1000).encodeABI();
+    const wallet = web3.eth.accounts.privateKeyToAccount(privateKey);
+
+    const signedTx = await wallet.signTransaction({
+        from: account,
+        gasPrice: "20000000000",
+        gas: "250000",
+        to: contractAddress,
+        data: tx
+    })
+
+    await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+}
+
+test();
